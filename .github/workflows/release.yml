@@ -63,7 +63,7 @@ jobs:
 
       - name: Build binary
         run: |
-          bun build --compile --target=${{ matrix.target }} --outfile=clova src/index.ts
+          bun build --compile --external playwright --target=${{ matrix.target }} --outfile=clova src/index.ts
           if [[ "${{ matrix.target }}" == bun-darwin-* ]]; then
             codesign --remove-signature clova
             codesign --force --deep -s - clova
