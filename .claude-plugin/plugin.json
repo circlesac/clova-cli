@@ -1,0 +1,7 @@
+{
+  "name": "clova",
+  "description": "CLOVA Note CLI reference for Claude Code — fetch transcripts, summaries, speakers, and audio from CLOVA Note",
+  "author": {
+    "name": "Circles Inc"
+  }
+}
