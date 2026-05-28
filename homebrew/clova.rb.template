@@ -1,0 +1,36 @@
+class Clova < Formula
+  desc "CLOVA Note CLI — transcripts, summaries, speakers, and audio from the terminal"
+  homepage "https://github.com/circlesac/clova-cli"
+  version "VERSION_PLACEHOLDER"
+  license "MIT"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/circlesac/clova-cli/releases/download/v#{version}/clova-darwin-arm64.tar.gz"
+      sha256 "SHA_DARWIN_ARM64"
+    end
+    on_intel do
+      url "https://github.com/circlesac/clova-cli/releases/download/v#{version}/clova-darwin-x64.tar.gz"
+      sha256 "SHA_DARWIN_X64"
+    end
+  end
+
+  on_linux do
+    on_arm do
+      url "https://github.com/circlesac/clova-cli/releases/download/v#{version}/clova-linux-arm64.tar.gz"
+      sha256 "SHA_LINUX_ARM64"
+    end
+    on_intel do
+      url "https://github.com/circlesac/clova-cli/releases/download/v#{version}/clova-linux-x64.tar.gz"
+      sha256 "SHA_LINUX_X64"
+    end
+  end
+
+  def install
+    bin.install "clova"
+  end
+
+  test do
+    system "#{bin}/clova", "--help"
+  end
+end

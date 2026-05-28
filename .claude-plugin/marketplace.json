@@ -1,0 +1,11 @@
+{
+  "name": "clova",
+  "owner": { "name": "Circles Inc" },
+  "plugins": [
+    {
+      "name": "clova",
+      "source": "./",
+      "description": "CLOVA Note CLI reference for Claude Code — fetch transcripts, summaries, speakers, and audio from CLOVA Note"
+    }
+  ]
+}
