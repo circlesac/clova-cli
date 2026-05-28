@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto"
+import { createInterface } from "node:readline"
 import { ClovaClient } from "../../api/client.ts"
+import { browserLogin } from "../../lib/browser-login.ts"
 import { defineLeafCommand } from "../../lib/command.ts"
 import { storeCredentials } from "../../lib/credentials.ts"
 import { AuthError, handleError } from "../../lib/errors.ts"
@@ -22,12 +24,33 @@ function readStdin(): Promise<string> {
 	})
 }
 
+// Prompt on the TTY; when hidden, suppress echo of the typed characters.
+function promptLine(question: string, hidden = false): Promise<string> {
+	return new Promise((resolve) => {
+		const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: true })
+		if (hidden) {
+			// @ts-expect-error _writeToOutput is internal but the standard way to mute input
+			rl._writeToOutput = (s: string) => {
+				if (s.includes(question)) process.stdout.write(question)
+			}
+		}
+		rl.question(question, (answer) => {
+			rl.close()
+			if (hidden) process.stdout.write("\n")
+			resolve(answer.trim())
+		})
+	})
+}
+
 export const loginCommand = defineLeafCommand({
 	meta: {
 		name: "login",
-		description: "Log in with your NAVER session cookies"
+		description: "Log in with NAVER credentials (automated browser) or session cookies"
 	},
 	args: {
+		id: { type: "string", description: "NAVER ID — logs in via an automated headless browser" },
+		pw: { type: "string", description: "NAVER password (omit with --id to be prompted securely)" },
+		headed: { type: "boolean", description: "Show the browser during login to clear a CAPTCHA / 2FA" },
 		cookie: { type: "string", description: 'Full cookie string, e.g. "NID_AUT=...; NID_SES=..."' },
 		aut: { type: "string", description: "NID_AUT cookie value" },
 		ses: { type: "string", description: "NID_SES cookie value" },
@@ -45,12 +68,23 @@ export const loginCommand = defineLeafCommand({
 				cookie = parts.join("; ")
 			} else if (args.stdin) cookie = normalizeCookie(await readStdin())
 			else if (process.env["CLOVA_COOKIE"]) cookie = normalizeCookie(process.env["CLOVA_COOKIE"]!)
+			else {
+				// Automated browser login from NAVER credentials (id/pw via flags, env, or prompt).
+				const id = args.id || process.env["CLOVA_NAVER_ID"]
+				if (id) {
+					const pw = args.pw || process.env["CLOVA_NAVER_PW"] || (await promptLine("NAVER password: ", true))
+					if (!pw) throw new AuthError("NAVER password is required.")
+					console.info("Logging in via browser…")
+					cookie = await browserLogin(id, pw, { headed: !!args.headed })
+				}
+			}
 
 			if (!cookie) {
 				throw new AuthError(
-					"No cookie provided. Get NID_AUT and NID_SES from your browser (devtools → Application → Cookies → naver.com) and run:\n" +
-						'  clova auth login --cookie "NID_AUT=...; NID_SES=..."\n' +
-						"or: clova auth login --aut <NID_AUT> --ses <NID_SES>"
+					"No credentials provided. Either log in automatically:\n" +
+						"  clova auth login --id <NAVER_ID>            (prompts for password)\n" +
+						"or paste cookies from your browser (devtools → Application → Cookies → naver.com):\n" +
+						'  clova auth login --cookie "NID_AUT=...; NID_SES=..."'
 				)
 			}
 			if (!/NID_AUT=/.test(cookie) || !/NID_SES=/.test(cookie)) {

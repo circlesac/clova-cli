@@ -17,10 +17,17 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@vitest/coverage-v8": "^4.0.18",
+    "playwright": "^1.48.0",
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
+    "playwright": "^1.40.0",
     "typescript": "^5"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
   },
   "files": [
     "bin",
@@ -32,7 +39,7 @@
     ]
   },
   "scripts": {
-    "build": "bun build --compile --outfile=dist/clova src/index.ts",
+    "build": "bun build --compile --external playwright --outfile=dist/clova src/index.ts",
     "dev": "bun run src/index.ts",
     "test": "vitest run",
     "lint": "npx @circlesac/lint --all",
