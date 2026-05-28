@@ -10,10 +10,14 @@ cookies and reads notes (transcript, summary, speakers, audio, share settings) f
 
 ## Prerequisites
 
-Authenticate first (one-time): the user logs in to clovanote.naver.com, copies `NID_AUT` and
-`NID_SES` cookies from browser devtools, then runs:
+Authenticate first (one-time), either way:
 
 ```bash
+# A. Automated — drives a headless browser (needs Playwright + Chrome installed).
+#    NAVER may show a CAPTCHA; re-run with --headed to solve it once.
+clova auth login --id <NAVER_ID>            # prompts for password (or --pw / CLOVA_NAVER_PW)
+
+# B. Paste cookies from the browser (devtools → Application → Cookies → naver.com).
 clova auth login --aut "<NID_AUT>" --ses "<NID_SES>"
 ```
 

@@ -9,7 +9,7 @@ CLOVA Note CLI — pull transcripts, summaries, speakers, and audio from [CLOVA 
 brew install circlesac/tap/clova
 
 # npm
-npm install -g clova
+npm install -g @circlesac/clova
 
 # or standalone
 curl -fsSL https://github.com/circlesac/clova-cli/releases/latest/download/install.sh | sh
@@ -17,23 +17,34 @@ curl -fsSL https://github.com/circlesac/clova-cli/releases/latest/download/insta
 
 ## Authenticate
 
-CLOVA Note requires a NAVER login session. Grab your NAVER cookies and hand them to `clova`:
+CLOVA Note runs on a NAVER login session. Two ways to get one:
 
-1. Log in to <https://clovanote.naver.com> in your browser.
-2. Open devtools → **Application → Cookies → `https://naver.com`**.
-3. Copy the values of **`NID_AUT`** and **`NID_SES`**.
+**A. Automated (NAVER ID + password).** Drives a headless browser to log in for you. Requires
+[Playwright](https://playwright.dev) and Google Chrome installed (`npm i -g playwright`):
+
+```bash
+clova auth login --id <NAVER_ID>          # prompts for password securely
+clova auth login --id <NAVER_ID> --headed # show the browser to clear a CAPTCHA / 2FA
+# password can also come from --pw or the CLOVA_NAVER_PW env var
+```
+
+NAVER may show a CAPTCHA on automated logins; re-run with `--headed` to solve it once in the
+browser. (NID login is bot-protected, so a real browser is needed just for this step.)
+
+**B. Paste cookies (no browser needed).** Grab `NID_AUT` and `NID_SES` from your browser
+(devtools → **Application → Cookies → `https://naver.com`**):
 
 ```bash
 clova auth login --aut "<NID_AUT>" --ses "<NID_SES>"
-# or paste the whole cookie string:
-clova auth login --cookie "NID_AUT=...; NID_SES=..."
-# or via env / stdin:
-CLOVA_COOKIE="NID_AUT=...; NID_SES=..." clova auth login
-pbpaste | clova auth login --stdin
+clova auth login --cookie "NID_AUT=...; NID_SES=..."   # whole cookie string
+CLOVA_COOKIE="NID_AUT=...; NID_SES=..." clova auth login # via env
+pbpaste | clova auth login --stdin                      # via stdin
 ```
 
 `clova` stores credentials under `~/.config/clova/credentials/` and creates its own device
-session (separate from your browser). Check it with `clova auth status`.
+session (separate from your browser). Check it with `clova auth status`. NID cookies are
+long-lived, so you rarely need to log in again — only `auth login` touches a browser; every
+other command is plain HTTP.
 
 ## Usage
 
