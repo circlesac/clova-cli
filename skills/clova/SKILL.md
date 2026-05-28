@@ -1,6 +1,6 @@
 ---
 name: clova
-description: Use the clova CLI to read CLOVA Note notes — transcripts, AI summaries, speakers, audio, and share info from the terminal
+description: Use the clova CLI to read and manage CLOVA Note notes — transcripts, AI summaries, speakers, audio, share info, and renaming from the terminal
 user-invocable: true
 ---
 
@@ -28,11 +28,10 @@ automatically and recreates it when it expires.
 
 ## Note reference
 
-Every `note` subcommand takes a note ID or a note-detail URL
-(`https://clovanote.naver.com/w/<ws>/note-detail/<id>`) as the first positional argument.
-
-Share URLs (`/s/<key>`) cannot be resolved by the CLI (the web app resolves them server-side).
-Open the share link once while logged in and use the note-detail URL or note ID instead.
+Every `note` subcommand takes any of these as the first positional argument:
+a note ID, a note-detail URL (`https://clovanote.naver.com/w/<ws>/note-detail/<id>`), or a
+share URL (`https://clovanote.naver.com/s/<key>`). Share URLs resolve directly — including
+notes that were shared with you — so there's no need to open them in a browser first.
 
 ## Commands
 
@@ -61,6 +60,9 @@ clova note share <note>
 
 # Access history: who opened the shared note
 clova note history <note>
+
+# Rename a note (change its title) — write operation, applies to notes you own
+clova note rename <note> "New title"
 ```
 
 ## Output formats

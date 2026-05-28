@@ -1,17 +1,17 @@
 import { ClovaCliError } from "../lib/errors.ts"
 
 export interface ResolvedNote {
-	noteId: string
+	noteId?: string
 	workspaceId?: string
+	shareKey?: string
 }
 
 /**
  * Resolve a note reference from raw input. Accepts:
  *  - a bare note ID
  *  - a note-detail URL (https://clovanote.naver.com/w/{ws}/note-detail/{noteId})
- * Share URLs (/s/{key}) are resolved server-side by the web app and have no public
- * API endpoint, so they cannot be resolved here — the user must open the link once
- * (while logged in) and pass the resulting note-detail URL or note ID.
+ *  - a share URL (https://clovanote.naver.com/s/{shareKey}) → returns the share key,
+ *    which the client trades for a note ID via the shared-notes authorization endpoint.
  */
 export function resolveNote(input: string): ResolvedNote {
 	const trimmed = input.trim()
@@ -21,11 +21,9 @@ export function resolveNote(input: string): ResolvedNote {
 		return { workspaceId: detail[1], noteId: detail[2]! }
 	}
 
-	if (/clovanote\.naver\.com\/s\//.test(trimmed)) {
-		throw new ClovaCliError(
-			"Share URLs (/s/...) can't be resolved directly. Open the link once while logged in, then pass the note-detail URL (…/note-detail/<id>) or the note ID.",
-			"UNRESOLVABLE_SHARE_URL"
-		)
+	const share = trimmed.match(/clovanote\.naver\.com\/s\/([^/?#]+)/)
+	if (share) {
+		return { shareKey: share[1]! }
 	}
 
 	// Treat anything else as a bare note ID.

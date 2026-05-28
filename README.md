@@ -48,8 +48,9 @@ other command is plain HTTP.
 
 ## Usage
 
-All `note` commands accept a **note ID** or a **note-detail URL**
-(`https://clovanote.naver.com/w/<ws>/note-detail/<id>`):
+All `note` commands accept a **note ID**, a **note-detail URL**
+(`https://clovanote.naver.com/w/<ws>/note-detail/<id>`), or a **share URL**
+(`https://clovanote.naver.com/s/<key>`):
 
 ```bash
 # Metadata: title, status, duration, speakers, segment count
@@ -75,15 +76,18 @@ clova note share <note>
 
 # Who has opened the shared note
 clova note history <note>
+
+# Rename a note (change its title)
+clova note rename <note> "New title"
 ```
 
-Every read command supports `--json` and `--plain` output.
+Read commands support `--json` and `--plain` output.
 
 ### Share links
 
-Share URLs (`https://clovanote.naver.com/s/<key>`) are resolved server-side by the CLOVA Note
-web app and have no public API endpoint. To work with a shared note, open the link once while
-logged in, then copy the resulting note-detail URL (or the note ID) and pass that to `clova`.
+Share URLs (`https://clovanote.naver.com/s/<key>`) work directly — pass one anywhere a note
+reference is accepted. The CLI trades the share key for the note via the shared-notes
+authorization endpoint, so it reads notes shared with you as well as your own.
 
 ## Development
 

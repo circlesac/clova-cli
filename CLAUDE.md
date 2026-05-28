@@ -59,6 +59,8 @@ The workflow bumps CalVer via `@circlesac/oneup`, builds multi-platform binaries
   - `GET /notes/{noteId}/shared-notes/{shareKey}/users/history` — viewers.
   - `GET /notes/{noteId}/merged-audio` — audio (audio/mp4, returns 200/206).
   - `GET /folders`, `GET /sessions`, `GET /user`.
-- Share URLs (`/s/{key}`) are resolved server-side by the Next.js web app (no public API
-  endpoint), so the CLI can't turn a share link into a note ID directly. Open the link once
-  while logged in, then use the resulting note-detail URL or note ID.
+  - `GET /shared-notes/{shareKey}/authorization` (against *your* workspace) — trades a share
+    key for `{ noteId, workspaceId, nonce }` and authorizes your session to read that note.
+    Read the note afterwards through *your own* workspace, not the owner's.
+- Share URLs (`/s/{key}`) resolve via the authorization endpoint above, so the CLI reads them
+  directly (including notes shared with you).

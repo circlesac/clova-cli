@@ -122,6 +122,22 @@ export class ClovaClient {
 		return this.request<NoteContents>(`/v2/w/${workspaceId ?? this.workspaceId}/notes/${noteId}`)
 	}
 
+	async renameNote(noteId: string, name: string, workspaceId?: string): Promise<void> {
+		await this.request(`/v2/w/${workspaceId ?? this.workspaceId}/notes/${noteId}/info/name`, {
+			method: "PUT",
+			body: { noteName: name }
+		})
+	}
+
+	/**
+	 * Trade a share key (/s/{shareKey}) for the underlying note. Called against your own
+	 * workspace; the request authorizes your session to read the note, then returns the
+	 * note ID and the owner's workspace. Read the note via your own workspace afterwards.
+	 */
+	async resolveShareKey(shareKey: string): Promise<{ noteId: string; workspaceId: string; nonce: string }> {
+		return this.request(`/v2/w/${this.workspaceId}/shared-notes/${shareKey}/authorization`)
+	}
+
 	async getSharedNotes(noteId: string, workspaceId?: string): Promise<SharedNote> {
 		return this.request<SharedNote>(`/v2/w/${workspaceId ?? this.workspaceId}/notes/${noteId}/shared-notes`)
 	}

@@ -16,8 +16,10 @@ describe("resolveNote", () => {
 		})
 	})
 
-	it("rejects share URLs with a helpful error", () => {
-		expect(() => resolveNote("https://clovanote.naver.com/s/EXAMPLEshareKey0000000")).toThrow(ClovaCliError)
+	it("parses a share URL into a share key", () => {
+		expect(resolveNote("https://clovanote.naver.com/s/EXAMPLEshareKey0000000")).toEqual({
+			shareKey: "EXAMPLEshareKey0000000"
+		})
 	})
 
 	it("rejects garbage input", () => {
