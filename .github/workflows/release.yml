@@ -112,6 +112,9 @@ jobs:
         with:
           name: versioned-files
 
+      # OIDC trusted publishing requires npm >= 11.5.1
+      - run: npm install -g npm@latest
+
       - name: Publish to npm
         run: npm publish --access public
 
