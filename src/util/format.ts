@@ -13,6 +13,14 @@ export function msToClock(ms: number): string {
 	return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
 }
 
+/** ISO 8601 (UTC) → local "YYYY-MM-DD HH:mm". Returns the input unchanged if unparseable. */
+export function formatDateTime(iso: string | undefined): string {
+	if (!iso) return ""
+	const d = new Date(iso)
+	if (Number.isNaN(d.getTime())) return iso
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 /** Milliseconds → "hh:mm:ss,mmm" (SRT). */
 export function msToSrtTime(ms: number): string {
 	const h = Math.floor(ms / 3600000)

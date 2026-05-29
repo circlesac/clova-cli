@@ -1,6 +1,6 @@
 import { storeCredentials } from "../lib/credentials.ts"
 import { ApiError, AuthError } from "../lib/errors.ts"
-import type { ApiResponse, Credentials, NoteContents, SharedNote, User } from "../types.ts"
+import type { ApiResponse, Credentials, NoteContents, NoteListItem, SharedNote, User } from "../types.ts"
 
 const API_HOST = "https://api-v2.clovanote.naver.com"
 const ORIGIN = "https://clovanote.naver.com"
@@ -116,6 +116,20 @@ export class ClovaClient {
 
 	async ensureSession(): Promise<void> {
 		if (!this.creds.sessionId) await this.createSession()
+	}
+
+	/** The most recent notes, as shown on the web home screen (newest first, ~10). */
+	async listRecentNotes(workspaceId?: string): Promise<NoteListItem[]> {
+		const contents = await this.request<{ homeRecentNoteList?: NoteListItem[] }>(`/v2/w/${workspaceId ?? this.workspaceId}/home/notes`)
+		return contents.homeRecentNoteList ?? []
+	}
+
+	/** Notes whose recording falls within [startDate, endDate] (ISO 8601 UTC). */
+	async listNotesByDate(startDate: string, endDate: string, workspaceId?: string): Promise<NoteListItem[]> {
+		const contents = await this.request<{ calendarNoteList?: NoteListItem[] }>(`/v2/w/${workspaceId ?? this.workspaceId}/home/notes/calendar`, {
+			query: { startDate, endDate }
+		})
+		return contents.calendarNoteList ?? []
 	}
 
 	async getNote(noteId: string, workspaceId?: string): Promise<NoteContents> {

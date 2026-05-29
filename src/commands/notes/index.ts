@@ -2,6 +2,7 @@ import { defineCommand } from "citty"
 import { audioCommand } from "./audio.ts"
 import { getCommand } from "./get.ts"
 import { historyCommand } from "./history.ts"
+import { listCommand } from "./list.ts"
 import { renameCommand } from "./rename.ts"
 import { shareCommand } from "./share.ts"
 import { speakersCommand } from "./speakers.ts"
@@ -11,9 +12,10 @@ import { transcriptCommand } from "./transcript.ts"
 export const noteCommand = defineCommand({
 	meta: {
 		name: "note",
-		description: "Read and manage CLOVA Note notes — transcript, summary, speakers, audio, share, rename"
+		description: "Read and manage CLOVA Note notes — list, transcript, summary, speakers, audio, share, rename"
 	},
 	subCommands: {
+		list: listCommand,
 		get: getCommand,
 		transcript: transcriptCommand,
 		summary: summaryCommand,

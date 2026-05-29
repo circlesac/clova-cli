@@ -86,6 +86,17 @@ export interface NoteContents {
 	permission?: { permissionType: string }
 }
 
+export interface NoteListItem {
+	noteId: string
+	noteName?: string
+	folderId?: string
+	folderName?: string
+	noteStatus?: string
+	createdDate?: string
+	updatedDate?: string
+	audioDuration?: number
+}
+
 export interface SharedNote {
 	sharedId: string
 	sharedLinkUrl: string
