@@ -136,6 +136,10 @@ export class ClovaClient {
 		return this.request<NoteContents>(`/v2/w/${workspaceId ?? this.workspaceId}/notes/${noteId}`)
 	}
 
+	async deleteNote(noteId: string, workspaceId?: string): Promise<void> {
+		await this.request(`/v2/w/${workspaceId ?? this.workspaceId}/notes/${noteId}`, { method: "DELETE" })
+	}
+
 	async renameNote(noteId: string, name: string, workspaceId?: string): Promise<void> {
 		await this.request(`/v2/w/${workspaceId ?? this.workspaceId}/notes/${noteId}/info/name`, {
 			method: "PUT",
