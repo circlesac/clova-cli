@@ -57,14 +57,20 @@ export interface ScriptBlock {
 	translatedText?: string
 }
 
+export interface SummaryItem {
+	text?: string
+	updatedText?: string
+	feedback?: string
+}
+
 export interface NoteAnnotation {
 	preMemo?: { text: string }
 	postMemo?: { text: string }
 	memoList?: Array<{ text: string; start?: number; blockId?: string }>
 	summaryBrief?: { text: string; updatedText?: string }
-	summaryAgenda?: unknown
-	summaryRecommendedTask?: unknown
-	summaryBySpeaker?: unknown
+	summaryAgenda?: { agendaList?: SummaryItem[] }
+	summaryRecommendedTask?: { recommendedTaskList?: SummaryItem[] }
+	summaryBySpeaker?: { speakerSummaryList?: Array<Record<string, unknown>> }
 	summaryList?: unknown[]
 }
 

@@ -1,14 +1,25 @@
 import { commonArgs, noteArg } from "../../lib/args.ts"
 import { defineLeafCommand } from "../../lib/command.ts"
 import { handleError } from "../../lib/errors.ts"
+import type { SummaryItem } from "../../types.ts"
 import { accountArg, noteContext } from "./context.ts"
 
-function nonEmpty(v: unknown): boolean {
-	if (v == null) return false
-	if (typeof v === "string") return v.trim().length > 0
-	if (Array.isArray(v)) return v.length > 0
-	if (typeof v === "object") return Object.keys(v).length > 0
-	return true
+const bold = (s: string) => `\x1b[1m${s}\x1b[0m`
+
+const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "")
+
+// Each by-speaker entry's shape isn't documented; pull the most likely name + body
+// fields and degrade to a single-line dump rather than a multi-line JSON blob.
+function formatSpeaker(s: Record<string, unknown>): string {
+	const name = str(s.speakerName) || str(s.name) || str(s.attendeeName) || str(s.sttLabel) || "화자"
+	let body = str(s.summary) || str(s.updatedText) || str(s.text)
+	if (!body) {
+		const list = s.summaryList ?? s.contents ?? s.textList
+		if (Array.isArray(list)) {
+			body = list.map((x) => (str((x as SummaryItem)?.updatedText) || str((x as SummaryItem)?.text) || str(x))).filter(Boolean).join(" / ")
+		}
+	}
+	return `- ${name}: ${body || JSON.stringify(s)}`
 }
 
 export const summaryCommand = defineLeafCommand({
@@ -28,23 +39,30 @@ export const summaryCommand = defineLeafCommand({
 				return
 			}
 
-			const brief = ann.summaryBrief?.updatedText || ann.summaryBrief?.text || ""
+			// The summary sections wrap their items in a list field and always carry
+			// timestamp keys, so emptiness must be judged by the inner list — not the
+			// wrapper object — otherwise empty summaries print as raw JSON.
 			const out: string[] = []
-			if (brief.trim()) {
-				out.push("\x1b[1m요약\x1b[0m")
-				out.push(brief.trim())
+
+			const brief = str(ann.summaryBrief?.updatedText) || str(ann.summaryBrief?.text)
+			if (brief) out.push(bold("요약"), brief)
+
+			const agenda = ann.summaryAgenda?.agendaList ?? []
+			if (agenda.length) {
+				out.push("\n" + bold("주요 안건"))
+				for (const a of agenda) out.push(`- ${str(a.updatedText) || str(a.text)}`)
 			}
-			if (nonEmpty(ann.summaryAgenda)) {
-				out.push("\n\x1b[1m주요 안건\x1b[0m")
-				out.push(typeof ann.summaryAgenda === "string" ? ann.summaryAgenda : JSON.stringify(ann.summaryAgenda, null, 2))
+
+			const tasks = ann.summaryRecommendedTask?.recommendedTaskList ?? []
+			if (tasks.length) {
+				out.push("\n" + bold("추천 할 일"))
+				for (const t of tasks) out.push(`- ${str(t.updatedText) || str(t.text)}`)
 			}
-			if (nonEmpty(ann.summaryRecommendedTask)) {
-				out.push("\n\x1b[1m추천 할 일\x1b[0m")
-				out.push(typeof ann.summaryRecommendedTask === "string" ? ann.summaryRecommendedTask : JSON.stringify(ann.summaryRecommendedTask, null, 2))
-			}
-			if (nonEmpty(ann.summaryBySpeaker)) {
-				out.push("\n\x1b[1m화자별 요약\x1b[0m")
-				out.push(JSON.stringify(ann.summaryBySpeaker, null, 2))
+
+			const speakers = ann.summaryBySpeaker?.speakerSummaryList ?? []
+			if (speakers.length) {
+				out.push("\n" + bold("화자별 요약"))
+				for (const s of speakers) out.push(formatSpeaker(s))
 			}
 
 			if (out.length === 0) {
