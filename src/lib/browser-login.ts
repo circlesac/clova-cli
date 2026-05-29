@@ -1,3 +1,8 @@
+import { execSync } from "node:child_process"
+import { createRequire } from "node:module"
+import { cwd } from "node:process"
+import { join } from "node:path"
+import { pathToFileURL } from "node:url"
 import { AuthError } from "./errors.ts"
 
 // NID login is gated by NAVER's WTM nCAPTCHA, which is only defeated by a real browser.
@@ -11,10 +16,26 @@ export interface BrowserLoginOptions {
 	headed?: boolean
 }
 
+// Playwright is built as --external, so the standalone (bun-compiled) binary
+// must resolve it from disk at runtime. A bare import("playwright") only finds a
+// local node_modules; resolve the npm global root too so `npm i -g playwright` works.
+async function loadChromium(): Promise<typeof import("playwright").chromium> {
+	const require = createRequire(pathToFileURL(join(cwd(), "clova.js")).href)
+	let entry: string
+	try {
+		entry = require.resolve("playwright")
+	} catch {
+		const globalRoot = execSync("npm root -g", { encoding: "utf8" }).trim()
+		entry = require.resolve("playwright", { paths: [globalRoot] })
+	}
+	const { chromium } = await import(pathToFileURL(entry).href)
+	return chromium
+}
+
 export async function browserLogin(id: string, pw: string, opts: BrowserLoginOptions = {}): Promise<string> {
 	let chromium: typeof import("playwright").chromium
 	try {
-		;({ chromium } = await import("playwright"))
+		chromium = await loadChromium()
 	} catch {
 		throw new AuthError(
 			"Automated login needs Playwright and a Chrome install.\n" +
