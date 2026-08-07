@@ -1,0 +1,30 @@
+import { defineCommand } from "citty"
+import { audioCommand } from "./audio.ts"
+import { deleteCommand } from "./delete.ts"
+import { getCommand } from "./get.ts"
+import { historyCommand } from "./history.ts"
+import { listCommand } from "./list.ts"
+import { renameCommand } from "./rename.ts"
+import { shareCommand } from "./share.ts"
+import { speakersCommand } from "./speakers.ts"
+import { summaryCommand } from "./summary.ts"
+import { transcriptCommand } from "./transcript.ts"
+
+export const noteCommand = defineCommand({
+	meta: {
+		name: "note",
+		description: "Read and manage CLOVA Note notes — list, transcript, summary, speakers, audio, share, rename, delete"
+	},
+	subCommands: {
+		list: listCommand,
+		get: getCommand,
+		transcript: transcriptCommand,
+		summary: summaryCommand,
+		speakers: speakersCommand,
+		audio: audioCommand,
+		share: shareCommand,
+		history: historyCommand,
+		rename: renameCommand,
+		delete: deleteCommand
+	}
+})
