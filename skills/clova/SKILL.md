@@ -19,6 +19,10 @@ clova auth login --id <NAVER_ID>            # prompts for password (or --pw / CL
 
 # B. Paste cookies from the browser (devtools → Application → Cookies → naver.com).
 clova auth login --aut "<NID_AUT>" --ses "<NID_SES>"
+
+# C. Reuse the NAVER session already logged in to a local browser (macOS: Chrome, Chromium,
+#    Comet, Arc, Edge, Brave). Several logged-in accounts → pick with --browser / --profile.
+clova auth login --from-browser
 ```
 
 Check status: `clova auth status` · Log out: `clova auth logout`

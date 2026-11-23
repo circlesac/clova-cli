@@ -2,6 +2,15 @@ import { randomUUID } from "node:crypto"
 import { createInterface } from "node:readline"
 import { ClovaClient } from "../../api/client.ts"
 import { browserLogin } from "../../lib/browser-login.ts"
+import {
+	BROWSER_PRODUCTS,
+	collectBrowserSessions,
+	describeFailures,
+	discoverCookieStores,
+	filterStores,
+	selectAccount,
+	type ValidatedSession
+} from "../../lib/browser-session.ts"
 import { defineLeafCommand } from "../../lib/command.ts"
 import { storeCredentials } from "../../lib/credentials.ts"
 import { AuthError, handleError } from "../../lib/errors.ts"
@@ -23,6 +32,35 @@ function readStdin(): Promise<string> {
 		process.stdin.on("end", () => resolve(data.trim()))
 		process.stdin.resume()
 	})
+}
+
+/** Read the NAVER session a local browser already holds, validate each one, and pick the account. */
+async function browserSessionCookie(browser?: string, profile?: string): Promise<string> {
+	if (process.platform !== "darwin") throw new AuthError("--from-browser currently supports macOS only.")
+	if (browser && !BROWSER_PRODUCTS.some((p) => p.id === browser.toLowerCase())) {
+		throw new AuthError(`Unknown --browser "${browser}". Use one of: ${BROWSER_PRODUCTS.map((p) => p.id).join(", ")}`)
+	}
+	const { stores: all, unreadable } = discoverCookieStores()
+	const stores = filterStores(all, browser, profile)
+	const blocked = unreadable.filter((f) => !browser || BROWSER_PRODUCTS.find((p) => p.id === browser.toLowerCase())?.name === f.source)
+	if (all.length > 0 && stores.length === 0 && blocked.length === 0) {
+		throw new AuthError(`No browser profile matches --browser ${browser ?? "*"} --profile ${profile ?? "*"}.`)
+	}
+	const { sessions, failures: readFailures } = await collectBrowserSessions(stores)
+	const failures = [...blocked, ...readFailures]
+	const valid: ValidatedSession[] = []
+	for (const session of sessions) {
+		try {
+			const user = await new ClovaClient({ name: "probe", cookie: session.cookie, deviceId: randomUUID() }).getUser()
+			valid.push({ ...session, accountKey: user.eUserId })
+		} catch {
+			failures.push({ source: session.source, kind: "missing-or-expired", detail: "NAVER rejected the session" })
+		}
+	}
+	if (valid.length === 0) throw new AuthError(describeFailures(failures, stores.length))
+	const chosen = selectAccount(valid)
+	console.info(`Using the NAVER session from ${chosen.source}`)
+	return chosen.cookie
 }
 
 // Prompt on the TTY; when hidden, suppress echo of the typed characters.
@@ -52,6 +90,12 @@ export const loginCommand = defineLeafCommand({
 		id: { type: "string", description: "NAVER ID — logs in via an automated headless browser" },
 		pw: { type: "string", description: "NAVER password (omit with --id to be prompted securely; accepts an op:// secret reference)" },
 		headed: { type: "boolean", description: "Show the browser during login to clear a CAPTCHA / 2FA" },
+		"from-browser": {
+			type: "boolean",
+			description: "Reuse the NAVER session already logged in to a local Chrome, Chromium, Comet, Arc, Edge, or Brave profile (macOS)"
+		},
+		browser: { type: "string", description: "With --from-browser: read only this browser (chrome, chromium, comet, arc, edge, brave)" },
+		profile: { type: "string", description: "With --from-browser: read only this profile directory or name, e.g. Default or \"Profile 1\"" },
 		cookie: { type: "string", description: 'Full cookie string, e.g. "NID_AUT=...; NID_SES=..." (accepts an op:// secret reference)' },
 		aut: { type: "string", description: "NID_AUT cookie value (accepts an op:// secret reference)" },
 		ses: { type: "string", description: "NID_SES cookie value (accepts an op:// secret reference)" },
@@ -72,7 +116,8 @@ export const loginCommand = defineLeafCommand({
 			])
 
 			let cookie = ""
-			if (argCookie) cookie = normalizeCookie(argCookie)
+			if (args["from-browser"] || args.browser || args.profile) cookie = await browserSessionCookie(args.browser, args.profile)
+			else if (argCookie) cookie = normalizeCookie(argCookie)
 			else if (argAut || argSes) {
 				const parts: string[] = []
 				if (argAut) parts.push(`NID_AUT=${argAut}`)
@@ -100,6 +145,8 @@ export const loginCommand = defineLeafCommand({
 				throw new AuthError(
 					"No credentials provided. Either log in automatically:\n" +
 						"  clova auth login --id <NAVER_ID>            (prompts for password)\n" +
+						"reuse the session already logged in to your browser (macOS):\n" +
+						"  clova auth login --from-browser\n" +
 						"or paste cookies from your browser (devtools → Application → Cookies → naver.com):\n" +
 						'  clova auth login --cookie "NID_AUT=...; NID_SES=..."'
 				)

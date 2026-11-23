@@ -45,7 +45,7 @@ The workflow bumps CalVer via `@circlesac/oneup`, builds multi-platform binaries
 
 ## CLOVA Note API (reverse-engineered)
 
-- Host: `https://api-v2.clovanote.naver.com`, all responses are `{ code, message, contents }` (code 0 = success).
+- Host: `https://clovanote-api.naver.com` (the former `api-v2.clovanote.naver.com` now rejects valid sessions with `4010001`), all responses are `{ code, message, contents }` (code 0 = success).
 - Auth: NAVER login cookies (`NID_AUT`, `NID_SES`) sent as `Cookie`, plus required headers:
   `note-client-type: WEB`, `note-client-version`, `note-device-id` (client UUID),
   `note-session-id` (from `POST /v2/w/{ws}/sessions`), and `Origin: https://clovanote.naver.com`.
