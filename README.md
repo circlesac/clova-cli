@@ -41,6 +41,19 @@ CLOVA_COOKIE="NID_AUT=...; NID_SES=..." clova auth login # via env
 pbpaste | clova auth login --stdin                      # via stdin
 ```
 
+**C. Reuse your browser's session (macOS, no password).** If you are already logged in to
+NAVER in Chrome, Chromium, Comet, Arc, Edge, or Brave, the CLI reads that session directly
+from the browser profile (decrypted with the browser's Keychain key; macOS may ask once):
+
+```bash
+clova auth login --from-browser
+clova auth login --from-browser --browser chrome --profile "Profile 1"   # pick one profile
+```
+
+It checks every `Default` and `Profile *` directory, verifies each session with CLOVA Note, and
+stops with a list of sources if several different NAVER accounts are logged in. If you just
+logged in and the session is not found yet, quit the browser normally and retry.
+
 `clova` stores credentials under `~/.config/clova/credentials/` and creates its own device
 session (separate from your browser). Check it with `clova auth status`. NID cookies are
 long-lived, so you rarely need to log in again — only `auth login` touches a browser; every
