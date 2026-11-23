@@ -2,7 +2,7 @@ import { storeCredentials } from "../lib/credentials.ts"
 import { ApiError, AuthError } from "../lib/errors.ts"
 import type { ApiResponse, Credentials, NoteContents, NoteListItem, SharedNote, User } from "../types.ts"
 
-const API_HOST = "https://api-v2.clovanote.naver.com"
+const API_HOST = "https://clovanote-api.naver.com"
 const ORIGIN = "https://clovanote.naver.com"
 const CLIENT_TYPE = "WEB"
 const CLIENT_VERSION = "3.38.1"
